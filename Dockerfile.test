@@ -1,0 +1,10 @@
+FROM openjdk:8-jdk as builder
+
+WORKDIR /microservice
+
+ADD src src
+COPY build.gradle .
+COPY settings.gradle .
+COPY gradlew .
+ADD gradle gradle
+COPY swagger-jenkins-adapter.yaml .

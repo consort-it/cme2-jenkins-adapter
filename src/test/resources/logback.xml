@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration scan="true" debug="true">
+	<appender name="Console" class="ch.qos.logback.core.ConsoleAppender"
+		target="STDOUT">
+		<!-- encoders are assigned the type ch.qos.logback.classic.encoder.PatternLayoutEncoder 
+			by default -->
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{ISO8601}Z %-5level %property{appname} %property{appversion} %msg %ex{full}%n</pattern>
+		</encoder>
+	</appender>
+
+	<appender name="FILE" class="ch.qos.logback.core.FileAppender">
+		<file>notificationManager.log</file>
+
+		<encoder>
+			<charset>UTF-8</charset>
+			<pattern>%d{ISO8601}Z %-5level %property{appname} %property{appversion} %msg %ex{full}%n</pattern>
+		</encoder>
+	</appender>
+
+	<root level="warn">
+		<appender-ref ref="Console" />
+	</root>
+
+	<logger name="com.consort" level="debug"
+			additivity="false">
+		<appender-ref ref="Console" />
+	</logger>
+</configuration>

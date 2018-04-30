@@ -1,0 +1,16 @@
+.idea/
+/target/
+*.iml
+.env
+!/src/test/resources/.env
+*.jar
+!gradle/wrapper/gradle-wrapper.jar
+*.log
+dependency-check-*
+version.properties
+version.yaml
+timsheet-secret.yml
+build
+.gradle
+.DS_Store
+testresult

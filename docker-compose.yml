@@ -1,0 +1,17 @@
+# this file is used in the 'testing' stage of the Jenkins pipeline
+# there are two services, because they are executed parallel
+#
+# the docker file that is used for production (swarm) is docker-stack.yml
+
+version: '3.3'
+
+services:
+
+  unit:
+    build:
+      context: .
+      dockerfile: Dockerfile.test
+    working_dir: /microservice
+    command: bash -c "./gradlew test; chmod -R 777 testresult"
+    volumes:
+      - ./testresult:/microservice/testresult

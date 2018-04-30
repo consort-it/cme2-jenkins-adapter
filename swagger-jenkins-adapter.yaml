@@ -1,0 +1,338 @@
+swagger: '2.0'
+info:
+  description: "This is the jenkins adapter of consort-group. It handles retrieval of build status and artifacts from a jenkins instance."
+  version: "1.0.0"
+  title: "Jenkins Adapter"
+  contact:
+    email: "rainer.hungershausen@consort-group.com"
+basePath: "/api/v1/jenkins-adapter"
+schemes:
+- http
+paths:
+  /{microservice-name}/lastbuild:
+    get:
+      tags:
+      - "build"
+      summary: "Get last build status"
+      description: "Determine the status of the last build for the given microservice"
+      operationId: "getLastBuild"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the microservice to query"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/Build"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        404:
+          description: "Microservice not found"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "Authentication required"
+  /{microservice-name}/lastsuccessfulbuild:
+    get:
+      tags:
+      - "build"
+      summary: "get last successful build status"
+      description: "Determine the status of the last successful build for the given microservice"
+      operationId: "getLastSuccessfulBuild"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the microservice to query"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/Build"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        404:
+          description: "Microservice not found"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "Authentication required"
+  /{microservice-name}/build/{build}/artifacts:
+    get:
+      tags:
+      - "build"
+      summary: "list artifacts for a build"
+      description: "List artifacts for the last build of the given microservice and build"
+      operationId: "listArtifactsForBuild"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the microservice to query"
+        required: true
+        type: "string"
+      - name: "build"
+        in: "path"
+        description: "The build number. Latest is chosen if this parameter is omitted."
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/Artifacts"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        404:
+          description: "Microservice not found"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "Authentication required"
+  /{microservice-name}/artifacts:
+    get:
+      tags:
+      - "build"
+      summary: "list artifacts for a build"
+      description: "List artifacts for the last build of the given microservice and build"
+      operationId: "listArtifacts"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the microservice to query"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+              $ref: "#/definitions/Artifacts"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        404:
+          description: "Microservice not found"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "Authentication required"
+  /{microservice-name}/build/{build}/artifacts/{filename}:
+    get:
+      tags:
+      - "build"
+      summary: "Get artifact from build"
+      description: "List artifacts for the last build of the given microservice and build"
+      operationId: "getBuildArtifactByFilename"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the microservice to query"
+        required: true
+        type: "string"
+      - name: "build"
+        in: "path"
+        description: "The build number. Latest is chosen if this parameter is omitted."
+        required: true
+        type: "string"
+      - name: "filename"
+        in: "path"
+        description: "The filename that should be retrieved"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/Build"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        404:
+          description: "Microservice not found"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "Authentication required"
+  /{microservice-name}/artifacts/{filename}:
+    get:
+      tags:
+      - "build"
+      summary: "Get artifact from build"
+      description: "List artifacts for the last build of the given microservice and build"
+      operationId: "getArtifactByFileame"
+      parameters:
+      - name: "microservice-name"
+        in: "path"
+        description: "The name of the microservice to query"
+        required: true
+        type: "string"
+      - name: "filename"
+        in: "path"
+        description: "The filename that should be retrieved"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Status 200. Everything went fine. Get was successful"
+          schema:
+            $ref: "#/definitions/Build"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        404:
+          description: "Microservice not found"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        500:
+          description: "Internal server error"
+          schema:
+            $ref: "#/definitions/ErrorResponse"
+          headers:
+            Access-Control-Allow-Origin:
+              type: "string"
+        401:
+          description: "Authentication required"
+  /health:
+    get:
+      tags:
+      - "health"
+      summary: "Check the health of the timesheet service"
+      description: "If the health check returns back 'UP' then the service runs and is ok"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Everything is fine. Status is up"
+  /metrics:
+    get:
+      tags:
+      - "metrics"
+      summary: "Get some metrics from the service"
+      description: "Gets the current metrics from the timesheet service"
+      produces:
+      - "application/json"
+      responses:
+        200:
+          description: "Everything is fine. Here are some metrics"
+  /metrics/{name}:
+    get:
+      tags:
+      - "metrics"
+      summary: "Get the status of a metric identified by name"
+      description: "Returns the metric identified by the name"
+      produces:
+      - "application/json"
+      parameters:
+      - name: "name"
+        in: "path"
+        description: "The name that needs to be fetched"
+        required: true
+        type: "string"
+      responses:
+        200:
+          description: "Everything is fine. Here is the metric"
+
+definitions:
+  Build:
+    type: object
+    required:
+      - number
+      - url
+    properties:
+      number:
+        type: string
+        description: "The build number of the microservice project on Jenkins."
+        example: "123"
+      url:
+        type: string
+        description: "Url for the build run."
+      result:
+        type: string
+        description: "Build status. can be one of SUCCESSFUL|UNSTABLE|FAILED"
+  Artifacts:
+        type: array
+        items:
+            $ref: "#/definitions/Artifact"
+  Artifact:
+    type: object
+    required:
+      - filename
+    properties:
+      filename:
+        type: string
+        description: "Filename of the artifact"
+        example: "artifact.zip"
+  ErrorResponse:
+        type: object
+        required:
+          - code
+          - message
+        properties:
+          code:
+            type: string
+            pattern: '^JENK-.+$'
+            description: "This error code should have the format 'JENK-XXX' where XXX is an integer. It is used to uniquely distinguish different error cases in order to display a suitable and translatable error message on the UI."
+            example: "JENK-123"
+          message:
+            type: string
+            description: "Should contain a short, meaningful description of the error case. Might be displayed to the end user."
+            example: "Requested service does not exist."
