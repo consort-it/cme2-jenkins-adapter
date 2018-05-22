@@ -12,6 +12,8 @@ echo "version: '${VERSION}'" >> version.yaml
 echo "commit: '${GIT_COMMIT}'" >> version.yaml
 echo "name: '${IMAGE}'" >> version.yaml
 sed "s/image-version/${VERSION}/" ${IMAGE}.yml > ${IMAGE}-deployment.yml
+echo "s/image-version/${VERSION}/ ${IMAGE}.yml > ${IMAGE}-deployment.yml"
+cat ${IMAGE}-deployment.yml
 
 docker build -t "${REGISTRY}/${IMAGE}" -f Dockerfile .
 

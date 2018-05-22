@@ -29,11 +29,11 @@ public class JenkinsServiceTest {
             "\"lastBuild\" : {\n" +
             "    \"_class\" : \"org.jenkinsci.plugins.workflow.job.WorkflowRun\",\n" +
             "    \"number\" : 123,\n" +
-            "    \"url\" : \"https://jenkins.consort-it.de/job/test-service/123/\"\n" +
+            "    \"url\" : \"https://jenkins.consort-it.de/job/pipeline_test-service/123/\"\n" +
             "}, \"lastSuccessfulBuild\" : {\n" +
             "    \"_class\" : \"org.jenkinsci.plugins.workflow.job.WorkflowRun\",\n" +
             "    \"number\" : 123,\n" +
-            "    \"url\" : \"https://jenkins.consort-it.de/job/test-service/123/\"\n" +
+            "    \"url\" : \"https://jenkins.consort-it.de/job/pipeline_test-service/123/\"\n" +
             "}}";
 
     public static final String JENKINS_BUILD = "{" +
@@ -44,7 +44,7 @@ public class JenkinsServiceTest {
             "}]," +
             "\"result\" : \"SUCCESS\"," +
             "\"id\" : \"123\"," +
-            "\"url\" : \"https://jenkins.consort-it.de/job/test-service/123/\"\n" +
+            "\"url\" : \"https://jenkins.consort-it.de/job/pipeline_test-service/123/\"\n" +
             "}";
     @Rule
     public WireMockRule wireMockRule = new WireMockRule(options().port(8088));
@@ -52,19 +52,19 @@ public class JenkinsServiceTest {
     @Before
     public void setUp(){
         wireMockRule.resetScenarios();
-        stubFor(get(urlEqualTo("/job/test-service/api/json"))
+        stubFor(get(urlEqualTo("/job/pipeline_test-service/api/json"))
                 .withBasicAuth(USER, PASSWORD)
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(JENKINS_PROJECT)));
 
-        stubFor(get(urlEqualTo("/job/test-service/123/api/json"))
+        stubFor(get(urlEqualTo("/job/pipeline_test-service/123/api/json"))
                 .withBasicAuth(USER, PASSWORD)
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "application/json")
                         .withBody(JENKINS_BUILD)));
 
-        stubFor(get(urlEqualTo("/job/test-service/123/artifact/file"))
+        stubFor(get(urlEqualTo("/job/pipeline_test-service/123/artifact/file"))
                 .withBasicAuth(USER, PASSWORD)
                 .willReturn(aResponse()
                         .withHeader("Content-Type", "text/plain")
@@ -76,7 +76,7 @@ public class JenkinsServiceTest {
         Build lastBuild = JenkinsService.getInstance().getLastBuild("test-service");
 
         assertEquals(123, lastBuild.getNumber());
-        assertEquals("https://jenkins.consort-it.de/job/test-service/123/", lastBuild.getUrl());
+        assertEquals("https://jenkins.consort-it.de/job/pipeline_test-service/123/", lastBuild.getUrl());
         assertEquals("SUCCESS", lastBuild.getResult());
     }
 
@@ -86,7 +86,7 @@ public class JenkinsServiceTest {
         Build lastBuild = JenkinsService.getInstance().getLastSuccessfulBuild("test-service");
 
         assertEquals(123, lastBuild.getNumber());
-        assertEquals("https://jenkins.consort-it.de/job/test-service/123/", lastBuild.getUrl());
+        assertEquals("https://jenkins.consort-it.de/job/pipeline_test-service/123/", lastBuild.getUrl());
         assertEquals("SUCCESS", lastBuild.getResult());
     }
 

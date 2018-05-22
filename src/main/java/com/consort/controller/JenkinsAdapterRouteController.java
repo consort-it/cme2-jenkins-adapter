@@ -12,12 +12,15 @@ import spark.Service;
 
 import java.io.InputStream;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static spark.Service.ignite;
 
 public class JenkinsAdapterRouteController implements RouteController {
 
     public static final String API_PREFIX = "/api/v1/jenkins-adapter/";
+    private static final String MICROSERVICE_BUILD_PATH = API_PREFIX + ":service/actions/:action";
     private static final String BUILDS_LAST_PATH = API_PREFIX + ":service/lastbuild";
     private static final String BUILDS_LAST_SUCCESSFUL_PATH = API_PREFIX + ":service/lastsuccessfulbuild";
     private static final String BUILDS_LIST_ARTIFACTS_PATH = API_PREFIX + ":service/artifacts";
@@ -30,8 +33,11 @@ public class JenkinsAdapterRouteController implements RouteController {
 
     private static final ObjectMapper mapper = new ObjectMapper();
     public static final String PARAMETER_SERVICE = "service";
+    public static final String BUILD_ACTION = "action";
     public static final String MESSAGE_NOT_FOUND = "Microservice or build not found.";
+    public static final String ACTION_NOT_FOUND = "Action not found.";
     public static final String CODE_NOT_FOUND = "001";
+    public static final String CODE_ACTION_NOT_FOUND = "003";
     public static final String MESSAGE_FILE_NOT_FOUND = "File not found.";
     public static final String CODE_FILE_NOT_FOUND = "002";
 
@@ -39,6 +45,7 @@ public class JenkinsAdapterRouteController implements RouteController {
 
         final Service http = ignite().port(8080);
         enableCORS(http, "*", "GET, POST", "Content-Type, Authorization");
+        handlePostActionsMicroservice(http);
         handleGetLastBuild(http);
         handleGetLastSuccessfulBuild(http);
         handleListArtifacts(http);
@@ -47,11 +54,39 @@ public class JenkinsAdapterRouteController implements RouteController {
         handleGetBuildArtifact(http);
     }
 
+    // Remove -v1 if available
+    private String formMicroservice(String microService) throws Exception{
+        Pattern p = Pattern.compile("(.*?(?=(-v1)|$))");
+        Matcher m = p.matcher(microService);
+        if (m.find()) {
+            return m.group(1);
+        }
+        throw new Exception();
+    }
+
+    private void handlePostActionsMicroservice(final Service http) {
+
+        http.before(MICROSERVICE_BUILD_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
+        http.post(MICROSERVICE_BUILD_PATH, (req, res) -> {
+            boolean build = false;
+            if(req.params(BUILD_ACTION).equals("build"))
+                build = JenkinsService.getInstance().build(formMicroservice(req.params(PARAMETER_SERVICE)));
+
+            if (!build) {
+                res.status(404);
+                return mapper.writeValueAsString(new ErrorResponse(ACTION_NOT_FOUND, CODE_ACTION_NOT_FOUND));
+            } else {
+                res.status(200);
+                return "";
+            }
+        });
+    }
+
     private void handleGetLastBuild(final Service http) {
 
         http.before(BUILDS_LAST_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
         http.get(BUILDS_LAST_PATH, (req, res) -> {
-            Build build = JenkinsService.getInstance().getLastBuild(req.params(PARAMETER_SERVICE));
+            Build build = JenkinsService.getInstance().getLastBuild(formMicroservice(req.params(PARAMETER_SERVICE)));
 
             if (build == null) {
                 res.status(404);
@@ -68,7 +103,7 @@ public class JenkinsAdapterRouteController implements RouteController {
         http.before(BUILDS_LAST_SUCCESSFUL_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
         http.get(BUILDS_LAST_SUCCESSFUL_PATH, (req, res) -> {
 
-            Build build = JenkinsService.getInstance().getLastSuccessfulBuild(req.params(PARAMETER_SERVICE));
+            Build build = JenkinsService.getInstance().getLastSuccessfulBuild(formMicroservice(req.params(PARAMETER_SERVICE)));
 
             if (build == null) {
                 res.status(404);
@@ -84,13 +119,13 @@ public class JenkinsAdapterRouteController implements RouteController {
 
         http.before(BUILDS_LIST_ARTIFACTS_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
         http.get(BUILDS_LIST_ARTIFACTS_PATH, (req, res) -> {
-            Build build = JenkinsService.getInstance().getLastBuild(req.params(PARAMETER_SERVICE));
+            Build build = JenkinsService.getInstance().getLastBuild(formMicroservice(req.params(PARAMETER_SERVICE)));
             if (build == null) {
                 res.status(404);
                 return mapper.writeValueAsString(new ErrorResponse(MESSAGE_NOT_FOUND, CODE_NOT_FOUND));
             }
 
-            List<Artifact> artifacts = JenkinsService.getInstance().getArtifacts(req.params(PARAMETER_SERVICE), build.getNumber());
+            List<Artifact> artifacts = JenkinsService.getInstance().getArtifacts(formMicroservice(req.params(PARAMETER_SERVICE)), build.getNumber());
             res.status(200);
             return mapper.writeValueAsString(artifacts);
         });
@@ -100,7 +135,7 @@ public class JenkinsAdapterRouteController implements RouteController {
 
         http.before(BUILDS_LIST_BUILD_ARTIFACTS_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
         http.get(BUILDS_LIST_BUILD_ARTIFACTS_PATH, (req, res) -> {
-            List<Artifact> artifacts = JenkinsService.getInstance().getArtifacts(req.params(PARAMETER_SERVICE), Integer.parseInt(req.params("build")));
+            List<Artifact> artifacts = JenkinsService.getInstance().getArtifacts(formMicroservice(req.params(PARAMETER_SERVICE)), Integer.parseInt(req.params("build")));
             res.status(200);
             return mapper.writeValueAsString(artifacts);
         });
@@ -110,8 +145,8 @@ public class JenkinsAdapterRouteController implements RouteController {
 
         http.before(BUILDS_GET_ARTIFACT_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
         http.get(BUILDS_GET_ARTIFACT_PATH, (req, res) -> {
-            Build build = JenkinsService.getInstance().getLastBuild(req.params(PARAMETER_SERVICE));
-            ArtifactContent artifact = JenkinsService.getInstance().getArtifact(req.params(PARAMETER_SERVICE), build.getNumber(), req.params("filename"));
+            Build build = JenkinsService.getInstance().getLastBuild(formMicroservice(req.params(PARAMETER_SERVICE)));
+            ArtifactContent artifact = JenkinsService.getInstance().getArtifact(formMicroservice(req.params(PARAMETER_SERVICE)), build.getNumber(), req.params("filename"));
             if(artifact != null)
             {
                 res.status(200);
@@ -134,7 +169,7 @@ public class JenkinsAdapterRouteController implements RouteController {
 
         http.before(BUILDS_GET_BUILD_ARTIFACT_PATH, new AuthorizationFilter(AUTHORIZER_NAME, SCOPE_READ));
         http.get(BUILDS_GET_BUILD_ARTIFACT_PATH, (req, res) -> {
-            ArtifactContent artifact = JenkinsService.getInstance().getArtifact(req.params(PARAMETER_SERVICE), Integer.parseInt(req.params("build")), req.params("filename"));
+            ArtifactContent artifact = JenkinsService.getInstance().getArtifact(formMicroservice(req.params(PARAMETER_SERVICE)), Integer.parseInt(req.params("build")), req.params("filename"));
 
             if(artifact != null)
             {
